@@ -85,8 +85,3 @@ export const API_BASE_URL = 'http://localhost:3000';
 3. **Docentes / Alunos**: criação, edição, exclusão e paginação.
 4. **Admin**: gerenciamento completo dos posts.
 
----
-
-## 📄 Licença
-
-Este projeto está sob a licença **MIT**.
