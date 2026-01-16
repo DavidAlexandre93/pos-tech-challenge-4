@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "POS Tech Blog Mobile",
+    "slug": "pos-tech-blog-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {},
+    "web": {}
+  }
+}
