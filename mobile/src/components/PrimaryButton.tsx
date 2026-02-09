@@ -12,6 +12,8 @@ export function PrimaryButton({ label, onPress, variant = 'primary', disabled }:
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -21,7 +23,7 @@ export function PrimaryButton({ label, onPress, variant = 'primary', disabled }:
         disabled && styles.disabled
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.labelBase, styles[`${variant}Label`]]}>{label}</Text>
     </Pressable>
   );
 }
@@ -33,14 +35,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 6
+    marginVertical: 6,
+    minHeight: 44
   },
   primary: {
     backgroundColor: '#2563EB'
   },
   outline: {
     borderWidth: 1,
-    borderColor: '#2563EB'
+    borderColor: '#2563EB',
+    backgroundColor: '#FFFFFF'
   },
   danger: {
     backgroundColor: '#DC2626'
@@ -51,8 +55,16 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.6
   },
-  label: {
-    color: '#FFFFFF',
+  labelBase: {
     fontWeight: '600'
+  },
+  primaryLabel: {
+    color: '#FFFFFF'
+  },
+  outlineLabel: {
+    color: '#1D4ED8'
+  },
+  dangerLabel: {
+    color: '#FFFFFF'
   }
 });

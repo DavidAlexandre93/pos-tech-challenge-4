@@ -1,13 +1,16 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { AppDataProvider } from '@/context/AppDataContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { AppNavigator } from '@/navigation/AppNavigator';
 
 export default function App() {
   return (
     <AuthProvider>
-      <StatusBar style="light" />
-      <AppNavigator />
+      <AppDataProvider>
+        <StatusBar style="light" />
+        <AppNavigator />
+      </AppDataProvider>
     </AuthProvider>
   );
 }
