@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import { apiRequest } from '@/api/client';
+import { getAuthenticatedUser, loginRequest } from '@/api/auth';
 import type { AuthUser, Role } from '@/types';
+import { STORAGE_KEYS } from '@/utils/constants';
 
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   hasRole: (role: Role) => boolean;
@@ -14,60 +16,81 @@ interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
   isLoading: true,
+  isAuthenticated: false,
   login: async () => {},
   logout: async () => {},
   hasRole: () => false
 });
-
-interface AuthResponse {
-  token: string;
-  user: {
-    id: string;
-    name: string;
-    role: Role;
-  };
-}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadStoredSession() {
-      const storedToken = await AsyncStorage.getItem('token');
-      const storedUser = await AsyncStorage.getItem('user');
+    let isMounted = true;
 
-      if (storedToken && storedUser) {
-        const parsedUser = JSON.parse(storedUser) as Omit<AuthUser, 'token'>;
-        setUser({ ...parsedUser, token: storedToken });
+    async function loadStoredSession() {
+      try {
+        const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.token);
+        const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.user);
+
+        if (!storedToken || !storedUser) {
+          return;
+        }
+
+        let parsedUser: Omit<AuthUser, 'token'>;
+
+        try {
+          parsedUser = JSON.parse(storedUser) as Omit<AuthUser, 'token'>;
+        } catch {
+          await AsyncStorage.multiRemove([STORAGE_KEYS.token, STORAGE_KEYS.user]);
+          return;
+        }
+
+        try {
+          const refreshedUser = await getAuthenticatedUser();
+
+          if (!isMounted) {
+            return;
+          }
+
+          setUser({ ...refreshedUser, token: storedToken });
+          await AsyncStorage.setItem(
+            STORAGE_KEYS.user,
+            JSON.stringify({ id: refreshedUser.id, name: refreshedUser.name, role: refreshedUser.role })
+          );
+        } catch {
+          if (isMounted) {
+            setUser({ ...parsedUser, token: storedToken });
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     }
 
     loadStoredSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const response = await apiRequest<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
+    const authUser = await loginRequest(email, password);
 
-    const authUser: AuthUser = {
-      id: response.user.id,
-      name: response.user.name,
-      role: response.user.role,
-      token: response.token
-    };
-
-    await AsyncStorage.setItem('token', response.token);
-    await AsyncStorage.setItem('user', JSON.stringify(response.user));
+    await AsyncStorage.setItem(STORAGE_KEYS.token, authUser.token);
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.user,
+      JSON.stringify({ id: authUser.id, name: authUser.name, role: authUser.role })
+    );
     setUser(authUser);
   }, []);
 
   const logout = useCallback(async () => {
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
+    await AsyncStorage.multiRemove([STORAGE_KEYS.token, STORAGE_KEYS.user]);
     setUser(null);
   }, []);
 
@@ -80,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ user, isLoading, login, logout, hasRole }),
+    () => ({ user, isLoading, isAuthenticated: Boolean(user), login, logout, hasRole }),
     [user, isLoading, login, logout, hasRole]
   );
 

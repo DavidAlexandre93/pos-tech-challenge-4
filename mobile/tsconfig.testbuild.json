@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".tests-dist",
+    "module": "commonjs",
+    "target": "es2020",
+    "declaration": false,
+    "sourceMap": false,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src/api/**/*.ts",
+    "src/utils/constants.ts",
+    "src/types/index.ts"
+  ]
+}

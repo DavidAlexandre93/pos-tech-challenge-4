@@ -7,6 +7,14 @@ export interface Post {
   description?: string;
   author: string;
   createdAt?: string;
+  comments?: PostComment[];
+}
+
+export interface PostComment {
+  id?: string;
+  author?: string;
+  content: string;
+  createdAt?: string;
 }
 
 export interface Teacher {
@@ -28,4 +36,10 @@ export interface AuthUser {
   name: string;
   role: Role;
   token: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  page: number;
+  totalPages: number;
 }
