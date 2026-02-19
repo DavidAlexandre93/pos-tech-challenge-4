@@ -12,6 +12,7 @@
   "include": [
     "src/api/**/*.ts",
     "src/utils/constants.ts",
-    "src/types/index.ts"
+    "src/types/index.ts",
+    "src/navigation/accessControl.ts"
   ]
 }

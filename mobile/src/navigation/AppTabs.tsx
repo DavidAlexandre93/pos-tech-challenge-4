@@ -12,6 +12,7 @@ import { StudentsListScreen } from '@/screens/StudentsListScreen';
 import { TeacherFormScreen } from '@/screens/TeacherFormScreen';
 import { TeachersListScreen } from '@/screens/TeachersListScreen';
 import { ROUTES } from '@/utils/constants';
+import { canManageContent, getAvailableTabs } from '@/navigation/accessControl';
 
 export type PostsStackParamList = {
   [ROUTES.posts]: undefined;
@@ -49,13 +50,13 @@ const StudentsStack = createNativeStackNavigator<StudentsStackParamList>();
 const AdminStack = createNativeStackNavigator<AdminStackParamList>();
 
 function PostsStackNavigator() {
-  const { hasRole } = useAuth();
+  const { user } = useAuth();
 
   return (
     <PostsStack.Navigator>
       <PostsStack.Screen name={ROUTES.posts} component={PostListScreen} options={{ title: 'Posts' }} />
       <PostsStack.Screen name={ROUTES.postDetail} component={PostDetailScreen} options={{ title: 'Leitura' }} />
-      {hasRole('teacher') && (
+      {canManageContent(user?.role) && (
         <>
           <PostsStack.Screen name={ROUTES.postCreate} component={PostCreateScreen} options={{ title: 'Nova postagem' }} />
           <PostsStack.Screen name={ROUTES.postEdit} component={PostEditScreen} options={{ title: 'Editar postagem' }} />
@@ -97,18 +98,15 @@ function AdminStackNavigator() {
 }
 
 export function AppTabs() {
-  const { hasRole } = useAuth();
+  const { user } = useAuth();
+  const tabs = getAvailableTabs(user?.role);
 
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Posts" component={PostsStackNavigator} />
-      {hasRole('teacher') && (
-        <>
-          <Tab.Screen name="Docentes" component={TeachersStackNavigator} />
-          <Tab.Screen name="Alunos" component={StudentsStackNavigator} />
-          <Tab.Screen name="Admin" component={AdminStackNavigator} />
-        </>
-      )}
+      {tabs.includes('Posts') && <Tab.Screen name="Posts" component={PostsStackNavigator} />}
+      {tabs.includes('Docentes') && <Tab.Screen name="Docentes" component={TeachersStackNavigator} />}
+      {tabs.includes('Alunos') && <Tab.Screen name="Alunos" component={StudentsStackNavigator} />}
+      {tabs.includes('Admin') && <Tab.Screen name="Admin" component={AdminStackNavigator} />}
     </Tab.Navigator>
   );
 }

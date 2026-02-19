@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '@/hooks/useAuth';
 import { LoginScreen } from '@/screens/LoginScreen';
 import { AppTabs } from '@/navigation/AppTabs';
+import { ROOT_ROUTES, resolveRootRoute } from '@/navigation/accessControl';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -24,13 +25,15 @@ export function AppNavigator() {
     );
   }
 
+  const initialRoute = resolveRootRoute(false, Boolean(user));
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
-          <Stack.Screen name="App" component={AppTabs} />
+        {initialRoute === ROOT_ROUTES.app ? (
+          <Stack.Screen name={ROOT_ROUTES.app} component={AppTabs} />
         ) : (
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name={ROOT_ROUTES.login} component={LoginScreen} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
